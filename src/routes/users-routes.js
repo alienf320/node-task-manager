@@ -1,8 +1,43 @@
 const express = require('express')
 const User = require('../models/user.js')
 const auth = require('../middleware/auth.js')
+const multer = require('multer')
 
 const router = new express.Router()
+const upload = multer({
+  fileSize: 100000,
+  storage: multer.memoryStorage(),
+  fileFilter(req, file, cb) {
+    if(!file.originalname.match(/.*\.(jpg|png|jpeg)$/)) {
+      return cb(new Error("The file must be jpeg, jpg or png"))
+    }
+    cb(null, true)
+  }
+}); 
+
+router.post('/me/avatar', auth, upload.single('avatar'), async(req, res) => {
+  try {
+    req.user.avatar = req.file.buffer
+    await req.user.save()
+    res.send()    
+  } catch (error) {
+    console.error(error)
+    res.status(504).send(error)
+  }
+}, (error, req, res, next) => {
+  res.status(400).send({error: error.message})
+})
+
+router.delete('/me/avatar', auth, async(req, res) => {
+  try {
+    delete req.user.avatar
+    await req.user.save()
+    res.send(`Avatar from user ${req.user.name} was deleted`)
+  } catch (error) {
+    res.status(505).send(error)
+    
+  }
+})
 
 router.post('/', async (req, res) => {
   try {
