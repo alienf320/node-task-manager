@@ -3,7 +3,7 @@ const mongoose = require('mongoose')
 main().catch(err => console.log(err));
 
 async function main() {
-  await mongoose.connect('mongodb://127.0.0.1:27017/task-manager');
+  await mongoose.connect(process.env.MONGODB_URL);
 
   async function createTasks() {
     const tasks = [
